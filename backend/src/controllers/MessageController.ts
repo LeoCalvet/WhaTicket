@@ -14,6 +14,11 @@ type IndexQuery = {
   pageNumber: string;
 };
 
+type SearchQuery = {
+  searchParam: string;
+  pageNumber: string;
+}
+
 type MessageData = {
   body: string;
   fromMe: boolean;
@@ -34,6 +39,19 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
   return res.json({ count, messages, ticket, hasMore });
 };
+
+export const search = async (req: Request, res: Response) => {
+  const { ticketId } = req.params;
+  const { searchParam, pageNumber } = req.query as SearchQuery;
+
+  const { messages, count, hasMore } = await SearchMessagesService({
+    searchParam,
+    pageNumber,
+    ticketId
+  });
+
+  return res.json({ messages, count, hasMore });
+}
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
