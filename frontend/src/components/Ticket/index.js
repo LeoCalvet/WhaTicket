@@ -6,6 +6,8 @@ import openSocket from "../../services/socket-io";
 import clsx from "clsx";
 
 import { Paper, makeStyles } from "@material-ui/core";
+import SearchIcon from "@material-ui/icons/Search";
+import { IconButton } from "@material-ui/core";
 
 import ContactDrawer from "../ContactDrawer";
 import MessageInput from "../MessageInput/";
@@ -16,6 +18,7 @@ import MessagesList from "../MessagesList";
 import api from "../../services/api";
 import { ReplyMessageProvider } from "../../context/ReplyingMessage/ReplyingMessageContext";
 import toastError from "../../errors/toastError";
+import SearchModal from "../SearchModal";
 
 const drawerWidth = 320;
 
@@ -82,6 +85,7 @@ const Ticket = () => {
   const [loading, setLoading] = useState(true);
   const [contact, setContact] = useState({});
   const [ticket, setTicket] = useState({});
+  const [searchModalOpen, setSearchModalOpen] = useState(false); // Estado para o modal
 
   useEffect(() => {
     setLoading(true);
@@ -143,6 +147,14 @@ const Ticket = () => {
     setDrawerOpen(false);
   };
 
+  const handleSearchModalOpen = () => {
+    setSearchModalOpen(true);
+  }
+
+  const handleSearchModalClose = () => {
+    setSearchModalOpen(false);
+  }
+
   return (
     <div className={classes.root} id="drawer-container">
       <Paper
@@ -162,6 +174,9 @@ const Ticket = () => {
           </div>
           <div className={classes.ticketActionButtons}>
             <TicketActionButtons ticket={ticket} />
+            <IconButton onClick={handleSearchModalOpen}>
+              <SearchIcon />
+            </IconButton>
           </div>
         </TicketHeader>
         <ReplyMessageProvider>
@@ -177,6 +192,11 @@ const Ticket = () => {
         handleDrawerClose={handleDrawerClose}
         contact={contact}
         loading={loading}
+      />
+      <SearchModal
+        open={searchModalOpen}
+        onClose={handleSearchModalClose}
+        ticketId={ticket.id}
       />
     </div>
   );
