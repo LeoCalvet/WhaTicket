@@ -32,6 +32,9 @@ import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import Audio from "../Audio";
 
+import { SearchMessageContext } from "../../context/SearchMessage/SearchMessageContext";
+import { useContext } from "react";
+
 const useStyles = makeStyles((theme) => ({
   messagesListWrapper: {
     overflow: "hidden",
@@ -321,6 +324,8 @@ const MessagesList = ({ ticketId, isGroup }) => {
   const messageOptionsMenuOpen = Boolean(anchorEl);
   const currentTicketId = useRef(ticketId);
 
+  const { messageId: searchMessageId, setMessageId: setSearchMessageId } = useContext(SearchMessageContext);
+
   useEffect(() => {
     dispatch({ type: "RESET" });
     setPageNumber(1);
@@ -378,6 +383,30 @@ const MessagesList = ({ ticketId, isGroup }) => {
       socket.disconnect();
     };
   }, [ticketId]);
+
+  useEffect(() => {
+    const scrollToMessage = () => {
+      const messageElement = document.getElementById(`message-${searchMessageId}`);
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: "smooth" });
+        messageElement.style.backgroundColor = "#B4E1FF";
+        setTimeout(() => {
+          messageElement.style.backgroundColor = "";
+        }, 3000);
+        setSearchMessageId(null);
+      }
+    };
+
+    if (searchMessageId) {
+      const messageInList = messagesList.find(m => m.id === searchMessageId);
+      if (messageInList) {
+        scrollToMessage();
+      } else {
+        console.warn("Mensagem não encontrada na lista carregada. A rolagem não foi possível.");
+        setSearchMessageId(null);
+      }
+    }
+  }, [searchMessageId, messagesList, setSearchMessageId]);
 
   const loadMore = () => {
     setPageNumber((prevPageNumber) => prevPageNumber + 1);
@@ -451,7 +480,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
     /*else if (message.mediaType === "multi_vcard") {
       console.log("multi_vcard")
       console.log(message)
-    	
+
       if(message.body !== null && message.body !== "") {
         let newBody = JSON.parse(message.body)
         return (
@@ -598,7 +627,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
             <React.Fragment key={message.id}>
               {renderDailyTimestamps(message, index)}
               {renderMessageDivider(message, index)}
-              <div className={classes.messageLeft}>
+              <div className={classes.messageLeft} id={`message-${message.id}`}>
                 <IconButton
                   variant="contained"
                   size="small"
@@ -615,7 +644,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
                   </span>
                 )}
                 {(message.mediaUrl || message.mediaType === "location" || message.mediaType === "vcard"
-                  //|| message.mediaType === "multi_vcard" 
+                  //|| message.mediaType === "multi_vcard"
                 ) && checkMessageMedia(message)}
                 <div className={classes.textContentItem}>
                   {message.quotedMsg && renderQuotedMessage(message)}
@@ -632,7 +661,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
             <React.Fragment key={message.id}>
               {renderDailyTimestamps(message, index)}
               {renderMessageDivider(message, index)}
-              <div className={classes.messageRight}>
+              <div className={classes.messageRight} id={`message-${message.id}`}>
                 <IconButton
                   variant="contained"
                   size="small"
@@ -644,7 +673,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
                   <ExpandMore />
                 </IconButton>
                 {(message.mediaUrl || message.mediaType === "location" || message.mediaType === "vcard"
-                  //|| message.mediaType === "multi_vcard" 
+                  //|| message.mediaType === "multi_vcard"
                 ) && checkMessageMedia(message)}
                 <div
                   className={clsx(classes.textContentItem, {
