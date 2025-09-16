@@ -19,6 +19,7 @@ import api from "../../services/api";
 import { ReplyMessageProvider } from "../../context/ReplyingMessage/ReplyingMessageContext";
 import toastError from "../../errors/toastError";
 import SearchModal from "../SearchModal";
+import { SearchMessageProvider, SearchMessageContext } from "../../context/SearchMessage/SearchMessageContext";
 
 const drawerWidth = 320;
 
@@ -156,49 +157,51 @@ const Ticket = () => {
   }
 
   return (
-    <div className={classes.root} id="drawer-container">
-      <Paper
-        variant="outlined"
-        elevation={0}
-        className={clsx(classes.mainWrapper, {
-          [classes.mainWrapperShift]: drawerOpen,
-        })}
-      >
-        <TicketHeader loading={loading}>
-          <div className={classes.ticketInfo}>
-            <TicketInfo
-              contact={contact}
-              ticket={ticket}
-              onClick={handleDrawerOpen}
-            />
-          </div>
-          <div className={classes.ticketActionButtons}>
-            <TicketActionButtons ticket={ticket} />
-            <IconButton onClick={handleSearchModalOpen}>
-              <SearchIcon />
-            </IconButton>
-          </div>
-        </TicketHeader>
-        <ReplyMessageProvider>
-          <MessagesList
-            ticketId={ticketId}
-            isGroup={ticket.isGroup}
-          ></MessagesList>
-          <MessageInput ticketStatus={ticket.status} />
-        </ReplyMessageProvider>
-      </Paper>
-      <ContactDrawer
-        open={drawerOpen}
-        handleDrawerClose={handleDrawerClose}
-        contact={contact}
-        loading={loading}
-      />
-      <SearchModal
-        open={searchModalOpen}
-        onClose={handleSearchModalClose}
-        ticketId={ticket.id}
-      />
-    </div>
+    <SearchMessageProvider>
+      <div className={classes.root} id="drawer-container">
+        <Paper
+          variant="outlined"
+          elevation={0}
+          className={clsx(classes.mainWrapper, {
+            [classes.mainWrapperShift]: drawerOpen,
+          })}
+        >
+          <TicketHeader loading={loading}>
+            <div className={classes.ticketInfo}>
+              <TicketInfo
+                contact={contact}
+                ticket={ticket}
+                onClick={handleDrawerOpen}
+              />
+            </div>
+            <div className={classes.ticketActionButtons}>
+              <TicketActionButtons ticket={ticket} />
+              <IconButton onClick={handleSearchModalOpen}>
+                <SearchIcon />
+              </IconButton>
+            </div>
+          </TicketHeader>
+          <ReplyMessageProvider>
+            <MessagesList
+              ticketId={ticketId}
+              isGroup={ticket.isGroup}
+            ></MessagesList>
+            <MessageInput ticketStatus={ticket.status} />
+          </ReplyMessageProvider>
+        </Paper>
+        <ContactDrawer
+          open={drawerOpen}
+          handleDrawerClose={handleDrawerClose}
+          contact={contact}
+          loading={loading}
+        />
+        <SearchModal
+          open={searchModalOpen}
+          onClose={handleSearchModalClose}
+          ticketId={ticket.id}
+        />
+      </div>
+    </SearchMessageProvider>
   );
 };
 

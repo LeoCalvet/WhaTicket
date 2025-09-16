@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,7 @@ import { format, parseISO } from "date-fns";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import { i18n } from "../../translate/i18n";
+import { SearchMessageContext } from "../../context/SearchMessage/SearchMessageContext";
 
 const useStyles = makeStyles((theme) => ({
   dialogPaper: {
@@ -69,11 +70,14 @@ const SearchModal = ({ open, onClose, ticketId }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const searchInputRef = useRef();
+  const { setMessageId } = useContext(SearchMessageContext);
 
   useEffect(() => {
     if (open) {
       setTimeout(() => {
-        searchInputRef.current.focus();
+        if(searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
       }, 50);
     } else {
         setSearchParam("");
@@ -133,8 +137,7 @@ const SearchModal = ({ open, onClose, ticketId }) => {
   };
 
   const handleMessageClick = (messageId) => {
-    // Aqui vai a lógica para rolar até a mensagem
-    console.log("Scroll to message:", messageId);
+    setMessageId(messageId);
     onClose();
   };
 
