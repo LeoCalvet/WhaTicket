@@ -13,14 +13,13 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { FormControlLabel, Switch } from "@material-ui/core";
 
 import { i18n } from "../../translate/i18n";
 
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import ColorPicker from "../ColorPicker";
-import { IconButton, InputAdornment } from "@material-ui/core";
+import { IconButton, InputAdornment, FormControlLabel, Switch } from "@material-ui/core";
 import { Colorize } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
@@ -71,7 +70,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
-		autoDistribution: false,
+		autoDistribution: false, // <-- VALOR INICIAL ADICIONADO
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
@@ -96,6 +95,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 				name: "",
 				color: "",
 				greetingMessage: "",
+				autoDistribution: false,
 			});
 		};
 	}, [queueId, open]);
@@ -150,8 +150,8 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									helperText={touched.name && errors.name}
 									variant="outlined"
 									margin="dense"
-									fullWidth
 									className={classes.textField}
+                                    fullWidth
 								/>
 								<Field
 									as={TextField}
@@ -185,6 +185,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									}}
 									variant="outlined"
 									margin="dense"
+                                    fullWidth
 								/>
 								<ColorPicker
 									open={colorPickerModalOpen}
@@ -216,6 +217,20 @@ const QueueModal = ({ open, onClose, queueId }) => {
 										margin="dense"
 									/>
 								</div>
+                                <div>
+                                    <FormControlLabel
+                                        control={
+                                            <Field
+                                                as={Switch}
+                                                name="autoDistribution"
+                                                checked={values.autoDistribution}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Distribuição Automática"
+                                        margin="dense"
+                                    />
+                                </div>
 							</DialogContent>
 							<DialogActions>
 								<Button
