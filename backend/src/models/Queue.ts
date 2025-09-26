@@ -9,7 +9,9 @@ import {
   AllowNull,
   Unique,
   Default,
-  BelongsToMany
+  BelongsToMany,
+  ForeignKey,
+  BelongsTo
 } from "sequelize-typescript";
 import { Col } from "sequelize/types/lib/utils";
 import User from "./User";
@@ -42,6 +44,13 @@ class Queue extends Model<Queue> {
   @AllowNull(false)
   @Column
   autoDistribution: boolean;
+
+  @ForeignKey(() => User)
+  @Column
+  lastAssignedUserId: number;
+
+  @BelongsTo(() => User)
+  lastAssignedUser: User;
 
   @CreatedAt
   createdAt: Date;

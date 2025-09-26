@@ -61,6 +61,7 @@ const QueueSchema = Yup.object().shape({
 		.required("Required"),
 	color: Yup.string().min(3, "Too Short!").max(9, "Too Long!").required(),
 	greetingMessage: Yup.string(),
+	autoDistribution: Yup.boolean(),
 });
 
 const QueueModal = ({ open, onClose, queueId }) => {
@@ -70,7 +71,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
-		autoDistribution: false, // <-- VALOR INICIAL ADICIONADO
+		autoDistribution: false,
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);

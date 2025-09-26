@@ -53,7 +53,7 @@ const UpdateTicketService = async ({
       const nextUser = await DistributeTicketQueueService(queueId);
       if (nextUser) {
         ticketData.userId = nextUser.id;
-        // ticketData.status = "open"; // opcao para atribuir e ja abrir o ticket
+        ticketData.status = "open"; // opcao para atribuir e ja abrir o ticket
       }
     }
   }
