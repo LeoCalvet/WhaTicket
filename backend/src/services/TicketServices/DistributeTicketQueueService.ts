@@ -22,15 +22,15 @@ const DistributeTicketQueueService = async (
         [Op.in]: userIds, // Busca somente users que estao no Queue
       },
     },
-    attributes: [ // os atributos que irao voltar da consulta
+    attributes: [ // selecao de colunas
       "id",
       "name",
       [
-        Sequelize.fn("COUNT", Sequelize.col("tickets.id")),
+        Sequelize.fn("COUNT", Sequelize.col("tickets.id")), // criacao de nova coluna chamada openTickets
         "openTickets",
       ],
     ],
-    include: [
+    include: [ // juncao de tabelas
       {
         model: Ticket,
         as: "tickets",

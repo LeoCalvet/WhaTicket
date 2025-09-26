@@ -2,9 +2,12 @@ import CheckContactOpenTickets from "../../helpers/CheckContactOpenTickets";
 import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 import { getIO } from "../../libs/socket";
 import Ticket from "../../models/Ticket";
+import Queue from "../../models/Queue";
 import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
 import ShowWhatsAppService from "../WhatsappService/ShowWhatsAppService";
 import ShowTicketService from "./ShowTicketService";
+import DistributeTicketQueueService from "./DistributeTicketQueueService";
+import { stat } from "fs";
 
 interface TicketData {
   status?: string;
@@ -42,6 +45,17 @@ const UpdateTicketService = async ({
 
   if (oldStatus === "closed") {
     await CheckContactOpenTickets(ticket.contact.id, ticket.whatsappId);
+  }
+
+  if (status === "pending" && queueId && !userId) {
+    const queue = await Queue.findByPk(queueId);
+    if (queue?.autoDistribution) {
+      const nextUser = await DistributeTicketQueueService(queueId);
+      if (nextUser) {
+        ticketData.userId = nextUser.id;
+        // ticketData.status = "open"; // opcao para atribuir e ja abrir o ticket
+      }
+    }
   }
 
   await ticket.update({
