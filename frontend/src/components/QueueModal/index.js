@@ -13,6 +13,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import { FormControlLabel, Switch } from "@material-ui/core";
 
 import { i18n } from "../../translate/i18n";
 
@@ -70,6 +71,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
+		autoDistribution: false,
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
@@ -148,6 +150,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									helperText={touched.name && errors.name}
 									variant="outlined"
 									margin="dense"
+									fullWidth
 									className={classes.textField}
 								/>
 								<Field
