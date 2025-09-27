@@ -23,7 +23,7 @@ import Title from "../../components/Title";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
-import { DeleteOutline, Edit } from "@material-ui/icons";
+import { DeleteOutline, Edit, CheckCircle, Block } from "@material-ui/icons";
 import QueueModal from "../../components/QueueModal";
 import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/ConfirmationModal";
@@ -201,6 +201,9 @@ const Queues = () => {
                 {i18n.t("queues.table.color")}
               </TableCell>
               <TableCell align="center">
+                Distribuição Automática
+              </TableCell>
+              <TableCell align="center">
                 {i18n.t("queues.table.greeting")}
               </TableCell>
               <TableCell align="center">
@@ -224,6 +227,9 @@ const Queues = () => {
                         }}
                       />
                     </div>
+                  </TableCell>
+                  <TableCell aling="center">
+                    {queue.autoDistribution ? <CheckCircle style={{ color: "green" }} /> : <Block style={{ color: "red" }} /> }
                   </TableCell>
                   <TableCell align="center">
                     <div className={classes.customTableCell}>
@@ -256,7 +262,7 @@ const Queues = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={4} />}
+              {loading && <TableRowSkeleton columns={5} />}
             </>
           </TableBody>
         </Table>

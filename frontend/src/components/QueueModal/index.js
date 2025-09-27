@@ -19,7 +19,7 @@ import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import ColorPicker from "../ColorPicker";
-import { IconButton, InputAdornment } from "@material-ui/core";
+import { IconButton, InputAdornment, FormControlLabel, Switch } from "@material-ui/core";
 import { Colorize } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
@@ -61,6 +61,7 @@ const QueueSchema = Yup.object().shape({
 		.required("Required"),
 	color: Yup.string().min(3, "Too Short!").max(9, "Too Long!").required(),
 	greetingMessage: Yup.string(),
+	autoDistribution: Yup.boolean(),
 });
 
 const QueueModal = ({ open, onClose, queueId }) => {
@@ -70,6 +71,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
+		autoDistribution: false,
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
@@ -94,6 +96,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 				name: "",
 				color: "",
 				greetingMessage: "",
+				autoDistribution: false,
 			});
 		};
 	}, [queueId, open]);
@@ -149,6 +152,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									variant="outlined"
 									margin="dense"
 									className={classes.textField}
+                                    fullWidth
 								/>
 								<Field
 									as={TextField}
@@ -182,6 +186,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 									}}
 									variant="outlined"
 									margin="dense"
+                                    fullWidth
 								/>
 								<ColorPicker
 									open={colorPickerModalOpen}
@@ -213,6 +218,20 @@ const QueueModal = ({ open, onClose, queueId }) => {
 										margin="dense"
 									/>
 								</div>
+                                <div>
+                                    <FormControlLabel
+                                        control={
+                                            <Field
+                                                as={Switch}
+                                                name="autoDistribution"
+                                                checked={values.autoDistribution}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Distribuição Automática"
+                                        margin="dense"
+                                    />
+                                </div>
 							</DialogContent>
 							<DialogActions>
 								<Button

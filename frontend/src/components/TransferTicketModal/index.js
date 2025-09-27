@@ -39,29 +39,28 @@ const filterOptions = createFilterOptions({
 
 const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId }) => {
 	const history = useHistory();
+	const classes = useStyles();
 	const [options, setOptions] = useState([]);
 	const [queues, setQueues] = useState([]);
-	const [allQueues, setAllQueues] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [searchParam, setSearchParam] = useState("");
+	const [selectedQueue, setSelectedQueue] = useState(null); // Alterado para objeto completo
 	const [selectedUser, setSelectedUser] = useState(null);
-	const [selectedQueue, setSelectedQueue] = useState('');
 	const [selectedWhatsapp, setSelectedWhatsapp] = useState(ticketWhatsappId);
-	const classes = useStyles();
 	const { findAll: findAllQueues } = useQueues();
 	const { loadingWhatsapps, whatsApps } = useWhatsApps();
-
 	const { user: loggedInUser } = useContext(AuthContext);
 
 	useEffect(() => {
-		const loadQueues = async () => {
-			const list = await findAllQueues();
-			setAllQueues(list);
-			setQueues(list);
+		if (modalOpen) {
+			const loadQueues = async () => {
+				const list = await findAllQueues();
+				setQueues(list);
+			}
+			loadQueues();
 		}
-		loadQueues();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [modalOpen]);
 
 	useEffect(() => {
 		if (!modalOpen || searchParam.length < 3) {
@@ -92,27 +91,24 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId })
 		onClose();
 		setSearchParam("");
 		setSelectedUser(null);
+		setSelectedQueue(null);
 	};
 
 	const handleSaveTicket = async e => {
 		e.preventDefault();
 		if (!ticketid) return;
+		// Validação: ou fila ou usuário deve ser selecionado
+		if (!selectedQueue && !selectedUser) {
+			toastError("É obrigatório selecionar uma fila ou um usuário.");
+			return;
+		}
 		setLoading(true);
 		try {
-			let data = {};
-
-			if (selectedUser) {
-				data.userId = selectedUser.id
-			}
-
-			if (selectedQueue && selectedQueue !== null) {
-				data.queueId = selectedQueue
-
-				if (!selectedUser) {
-					data.status = 'pending';
-					data.userId = null;
-				}
-			}
+			let data = {
+				status: "pending", // Sempre volta para pendente ao transferir
+				userId: selectedUser ? selectedUser.id : null,
+				queueId: selectedQueue ? selectedQueue.id : null,
+			};
 
 			if(selectedWhatsapp) {
 				data.whatsappId = selectedWhatsapp;
@@ -126,6 +122,7 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId })
 			setLoading(false);
 			toastError(err);
 		}
+		handleClose();
 	};
 
 	return (
@@ -135,19 +132,33 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId })
 					{i18n.t("transferTicketModal.title")}
 				</DialogTitle>
 				<DialogContent dividers>
+                    {/* SELEÇÃO DE FILA VEIO PARA CIMA */}
+					<FormControl variant="outlined" className={classes.maxWidth} style={{ marginBottom: 20 }}>
+						<InputLabel>{i18n.t("transferTicketModal.fieldQueueLabel")}</InputLabel>
+						<Select
+							value={selectedQueue ? selectedQueue.id : ''}
+							onChange={(e) => {
+                                const queueId = e.target.value;
+                                const queue = queues.find(q => q.id === queueId);
+                                setSelectedQueue(queue);
+                                setSelectedUser(null); // Reseta usuário ao trocar de fila
+                            }}
+							label={i18n.t("transferTicketModal.fieldQueuePlaceholder")}
+						>
+							<MenuItem value={''}>&nbsp;</MenuItem>
+							{queues.map((queue) => (
+								<MenuItem key={queue.id} value={queue.id}>{queue.name}</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+
 					<Autocomplete
 						style={{ width: 300, marginBottom: 20 }}
 						getOptionLabel={option => `${option.name}`}
 						onChange={(e, newValue) => {
 							setSelectedUser(newValue);
-							if (newValue != null && Array.isArray(newValue.queues)) {
-								setQueues(newValue.queues);
-							} else {
-								setQueues(allQueues);
-								setSelectedQueue('');
-							}
 						}}
-						options={options}
+                        options={options}
 						filterOptions={filterOptions}
 						freeSolo
 						autoHighlight
@@ -158,7 +169,8 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId })
 								{...params}
 								label={i18n.t("transferTicketModal.fieldLabel")}
 								variant="outlined"
-								required
+                                // LÓGICA CONDICIONAL DE OBRIGATORIEDADE
+								required={selectedQueue ? !selectedQueue.autoDistribution : true}
 								autoFocus
 								onChange={e => setSearchParam(e.target.value)}
 								InputProps={{
@@ -175,24 +187,12 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid, ticketWhatsappId })
 							/>
 						)}
 					/>
-					<FormControl variant="outlined" className={classes.maxWidth}>
-						<InputLabel>{i18n.t("transferTicketModal.fieldQueueLabel")}</InputLabel>
-						<Select
-							value={selectedQueue}
-							onChange={(e) => setSelectedQueue(e.target.value)}
-							label={i18n.t("transferTicketModal.fieldQueuePlaceholder")}
-						>
-							<MenuItem value={''}>&nbsp;</MenuItem>
-							{queues.map((queue) => (
-								<MenuItem key={queue.id} value={queue.id}>{queue.name}</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+
 					<Can
 						role={loggedInUser.profile}
 						perform="ticket-options:transferWhatsapp"
-						yes={() => (!loadingWhatsapps && 
-							<FormControl variant="outlined" className={classes.maxWidth} style={{ marginTop: 20 }}>
+						yes={() => (!loadingWhatsapps &&
+							<FormControl variant="outlined" className={classes.maxWidth}>
 								<InputLabel>{i18n.t("transferTicketModal.fieldConnectionLabel")}</InputLabel>
 								<Select
 									value={selectedWhatsapp}
