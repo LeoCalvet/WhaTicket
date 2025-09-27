@@ -3,15 +3,12 @@ import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 import { getIO } from "../../libs/socket";
 import Ticket from "../../models/Ticket";
 import Queue from "../../models/Queue";
-import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
-import ShowWhatsAppService from "../WhatsappService/ShowWhatsAppService";
 import ShowTicketService from "./ShowTicketService";
 import DistributeTicketQueueService from "./DistributeTicketQueueService";
-import { stat } from "fs";
 
 interface TicketData {
   status?: string;
-  userId?: number;
+  userId?: number | null;
   queueId?: number;
   whatsappId?: number;
 }
@@ -31,45 +28,38 @@ const UpdateTicketService = async ({
   ticketData,
   ticketId
 }: Request): Promise<Response> => {
-  const { status, userId, queueId, whatsappId } = ticketData;
-
   const ticket = await ShowTicketService(ticketId);
   await SetTicketMessagesAsRead(ticket);
 
-  if(whatsappId && ticket.whatsappId !== whatsappId) {
-    await CheckContactOpenTickets(ticket.contactId, whatsappId);
-  }
-
   const oldStatus = ticket.status;
   const oldUserId = ticket.user?.id;
+  const oldQueueId = ticket.queueId;
+
+  if (ticketData.status === "pending") {
+    ticketData.userId = null;
+  }
+
+  if (ticketData.queueId && ticketData.queueId !== oldQueueId) {
+    const queue = await Queue.findByPk(ticketData.queueId);
+    if (queue?.autoDistribution) {
+      const nextUser = await DistributeTicketQueueService(ticketData.queueId);
+      if (nextUser) {
+        // Atribui o ticket ao próximo usuário e força o status para "open"
+        ticketData.userId = nextUser.id;
+        ticketData.status = "open";
+      }
+    }
+  }
+
+  if (ticketData.whatsappId && ticket.whatsappId !== ticketData.whatsappId) {
+    await CheckContactOpenTickets(ticket.contactId, ticketData.whatsappId);
+  }
 
   if (oldStatus === "closed") {
     await CheckContactOpenTickets(ticket.contact.id, ticket.whatsappId);
   }
 
-  if (status === "pending" && queueId && !userId) {
-    const queue = await Queue.findByPk(queueId);
-    if (queue?.autoDistribution) {
-      const nextUser = await DistributeTicketQueueService(queueId);
-      if (nextUser) {
-        ticketData.userId = nextUser.id;
-        ticketData.status = "open"; // opcao para atribuir e ja abrir o ticket
-      }
-    }
-  }
-
-  await ticket.update({
-    status,
-    queueId,
-    userId
-  });
-
-
-  if(whatsappId) {
-    await ticket.update({
-      whatsappId
-    });
-  }
+  await ticket.update(ticketData);
 
   await ticket.reload();
 
@@ -81,8 +71,6 @@ const UpdateTicketService = async ({
       ticketId: ticket.id
     });
   }
-
-
 
   io.to(ticket.status)
     .to("notification")
